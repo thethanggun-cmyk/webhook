@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Webhook</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-light">
+    <!-- Navbar 3 gạch -->
+    <nav class="navbar navbar-dark bg-dark px-3">
+        <span class="navbar-brand mb-0 h1">Bank Webhook Manager</span>
+        <div class="dropdown">
+            <button class="btn btn-outline-light" type="button" data-bs-toggle="dropdown"><i class="fa-solid fa-bars"></i> Menu</button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="/dashboard"><i class="fa-solid fa-house"></i> Trang chủ</a></li>
+                <li><a class="dropdown-item" href="/history"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử Webhook</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <!-- Tổng quan số liệu -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card text-white bg-primary shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Tổng số giao dịch nhận</h5>
+                        <h3>{{ total_tx }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card text-white bg-success shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Tổng tiền đã nhận</h5>
+                        <h3>{{ "{:,.0f}".format(total_money) }} VNĐ</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form tạo Webhook -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white"><strong>Tạo Webhook Key mới</strong></div>
+            <div class="card-body">
+                <form method="POST" action="/create-key" class="row g-3">
+                    <div class="col-md-8">
+                        <input type="text" name="name" class="form-control" placeholder="Nhập tên gợi nhớ (VD: Web bán hàng, Momo Shop...)" required>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus"></i> Tạo Webhook</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bảng danh sách Webhook Key -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white"><strong>Danh sách Webhook của bạn</strong></div>
+            <div class="card-body p-0">
+                <table class="table table-striped mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Tên gợi nhớ</th>
+                            <th>Link Webhook kèm Key</th>
+                            <th class="text-end">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for k in keys %}
+                        <tr>
+                            <td><strong>{{ k.name }}</strong></td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm bg-white" id="link-{{ k.id }}" value="{{ base_url }}/webhook/bank/{{ k.secret_key }}" readonly>
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="copyLink('link-{{ k.id }}', this)"><i class="fa-solid fa-copy"></i> Copy</button>
+                                <form action="/regenerate-key/{{ k.id }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-warning" onclick="return confirm('Đổi key mới sẽ làm hỏng link cũ trên web của bạn. Tiếp tục?')"><i class="fa-solid fa-rotate"></i> Đổi Key</button>
+                                </form>
+                                <form action="/delete-key/{{ k.id }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Xóa key này?')"><i class="fa-solid fa-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-center text-muted py-3">Chưa có webhook nào. Hãy tạo một cái ở trên!</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function copyLink(elementId, btn) {
+            var copyText = document.getElementById(elementId);
+            copyText.select();
+            navigator.clipboard.writeText(copyText.value);
+            let originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+            setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+        }
+    </script>
+</body>
+</html>
