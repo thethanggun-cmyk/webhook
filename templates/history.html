@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Lịch sử Webhook</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-dark px-3">
+        <span class="navbar-brand mb-0 h1">Bank Webhook Manager</span>
+        <div class="dropdown">
+            <button class="btn btn-outline-light" type="button" data-bs-toggle="dropdown"><i class="fa-solid fa-bars"></i> Menu</button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="/dashboard"><i class="fa-solid fa-house"></i> Trang chủ</a></li>
+                <li><a class="dropdown-item" href="/history"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử Webhook</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <!-- Bộ lọc chọn Key -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form method="GET" action="/history" class="row g-3 align-items-center">
+                    <div class="col-auto">
+                        <label class="col-form-label"><strong>Chọn Key cần check:</strong></label>
+                    </div>
+                    <div class="col-md-6">
+                        <select name="key" class="form-select" onchange="this.form.submit()">
+                            <option value="">-- Tất cả các Webhook Key --</option>
+                            {% for k in keys %}
+                            <option value="{{ k.secret_key }}" {% if selected_key == k.secret_key %}selected{% endif %}>{{ k.name }} ({{ k.secret_key[:8] }}...)</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bảng lịch sử giao dịch -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white"><strong>Lịch sử giao dịch biến động số dư</strong></div>
+            <div class="card-body p-0">
+                <table class="table table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>Thời gian</th>
+                            <th>Ngân hàng</th>
+                            <th>Mã GD</th>
+                            <th>Nội dung</th>
+                            <th class="text-end">Số tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in txs %}
+                        <tr>
+                            <td>{{ tx[5] }}</td>
+                            <td>{{ tx[1] }}</td>
+                            <td><code>{{ tx[4] }}</code></td>
+                            <td>{{ tx[3] }}</td>
+                            <td class="text-end text-success fw-bold">+{{ "{:,.0f}".format(tx[2]) }} VNĐ</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">Chưa có giao dịch nào được ghi nhận cho key này.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
